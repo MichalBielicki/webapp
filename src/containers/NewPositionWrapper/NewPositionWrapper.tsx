@@ -4,7 +4,7 @@ import { actions } from '@reducers/positions'
 import { useDispatch, useSelector } from 'react-redux'
 import { SwapToken, swapTokens, status } from '@selectors/solanaWallet'
 import { FEE_TIERS } from '@invariant-labs/sdk/lib/utils'
-import { createPlaceholderLiquidityPlot, printBN } from '@consts/utils'
+import { createPlaceholderLiquidityPlot, printBN, tickIndexFromNumber, tickNumberFromIndex } from '@consts/utils'
 import { pools } from '@selectors/pools'
 import { getLiquidityByX, getLiquidityByY } from '@invariant-labs/sdk/src/math'
 import { Decimal } from '@invariant-labs/sdk/lib/market'
@@ -53,9 +53,7 @@ export const NewPositionWrapper = () => {
 
   const midPriceIndex = useMemo(() => {
     if (poolIndex !== null && ticksData.length) {
-      const index = ticksData.findIndex((tick) => tick.index === allPools[poolIndex].currentTickIndex)
-
-      return index === -1 ? 0 : index
+      return tickNumberFromIndex(allPools[poolIndex].currentTickIndex, allPools[poolIndex].tickSpacing)
     }
 
     return 0
@@ -121,8 +119,8 @@ export const NewPositionWrapper = () => {
           setProgress('progress')
         }
 
-        const lowerTick = Math.min(ticksData[leftTickIndex].index, ticksData[rightTickIndex].index)
-        const upperTick = Math.max(ticksData[leftTickIndex].index, ticksData[rightTickIndex].index)
+        const lowerTick = Math.min(tickIndexFromNumber(leftTickIndex, allPools[poolIndex].tickSpacing), tickIndexFromNumber(rightTickIndex, allPools[poolIndex].tickSpacing))
+        const upperTick = Math.max(tickIndexFromNumber(leftTickIndex, allPools[poolIndex].tickSpacing), tickIndexFromNumber(rightTickIndex, allPools[poolIndex].tickSpacing))
 
         dispatch(actions.initPosition({
           poolIndex,
@@ -138,8 +136,8 @@ export const NewPositionWrapper = () => {
         }
 
         const byX = tokenAddress.equals(allPools[poolIndex].tokenX)
-        const lowerTick = Math.min(ticksData[left].index, ticksData[right].index)
-        const upperTick = Math.max(ticksData[left].index, ticksData[right].index)
+        const lowerTick = Math.min(tickIndexFromNumber(left, allPools[poolIndex].tickSpacing), tickIndexFromNumber(right, allPools[poolIndex].tickSpacing))
+        const upperTick = Math.max(tickIndexFromNumber(left, allPools[poolIndex].tickSpacing), tickIndexFromNumber(right, allPools[poolIndex].tickSpacing))
 
         console.log('liquidity calc by:', tokenAddress.toString())
         console.log('pool token x:', allPools[poolIndex].tokenX.toString())
